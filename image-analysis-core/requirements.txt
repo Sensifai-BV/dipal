@@ -1,0 +1,9 @@
+pycolmap
+numpy
+opencv-python
+boto3
+requests
+chromatrace>=0.2.16
+Pillow>=10.0.0
+pydantic-settings>=2.0.0
+redis>=5.0.0

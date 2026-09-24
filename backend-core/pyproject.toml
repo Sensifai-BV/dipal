@@ -1,0 +1,122 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "photogear"
+version = "0.10.4"
+description = "PhotoGear Backend - Django REST API for photogrammetry platform"
+requires-python = ">=3.12"
+dependencies = [
+    'daphne',
+    'channels',
+    "adrf>=0.1.9",
+    "chromatrace>=0.2.16",
+    "django>=5.2,<5.3",
+    "django-filter>=25.1",
+    "djangorestframework>=3.16,<4",
+    "djangorestframework-simplejwt>=5.5,<6",
+    "lagom>=0.7.2",
+    "psycopg2-binary>=2.9.9",
+    "celery",
+    "redis",
+    "boto3",
+    "smart_open[s3]",
+    "python-dotenv",
+    "requests",
+    "django-cors-headers",
+    "drf-spectacular",
+    "uvicorn[standard]>=0.37.0",
+    "python-magic-bin; sys_platform == 'win32'",
+    "python-magic; sys_platform != 'win32'",
+    "django-cors-headers",  # Override chromatrace's uvicorn==0.30.6 constraint
+    # Note: GDAL is installed separately in Dockerfile to match system version
+    "channels[daphne]>=4.0.0",  # For WebSocket support and channel layer
+    "channels-redis>=4.1.0",
+    "rarfile",
+    "Pillow",
+    "django-prometheus>=2.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "bandit[toml]>=1.7.10",
+    "black>=24.10.0",
+    "django-upgrade>=1.21.0",
+    "flake8>=7.1.1",
+    "flake8-bugbear>=24.10.31",
+    "flake8-comprehensions>=3.16.0",
+    "flake8-simplify>=0.21.0",
+    "isort>=7.0.0",
+    "mypy>=1.13.0",
+    "pre-commit>=4.0.1",
+    "django-stubs>=5.1.1",
+    "djangorestframework-stubs>=3.15.1",
+    "types-requests>=2.32.0"
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py313']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | migrations
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+skip_glob = ["*/migrations/*.py", "*/staticfiles/*"]
+known_django = ["django"]
+known_first_party = ["accounts", "datasets", "config", "utils", "products"]
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+
+[[tool.mypy.overrides]]
+module = "*.migrations.*"
+ignore_errors = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
+
+[tool.bandit]
+exclude_dirs = ["tests", "*/migrations/*", "*/staticfiles/*"]
+skips = ["B308", "B703"]
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "*/migrations/*",
+    "*/staticfiles/*",
+    ".venv",
+    "venv",
+]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["accounts*", "config*", "datasets*", "products*", "utils*"]
+exclude = ["tests*", "staticfiles*", "templates*"]
+namespaces = false

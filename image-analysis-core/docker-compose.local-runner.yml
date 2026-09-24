@@ -1,0 +1,83 @@
+# Local pipeline runner overlay.
+#
+# Usage (from image-analysis-core/):
+#
+#   # Calibration + Orthomosaic  (uses orthomosaic image — has GDAL/scipy)
+#   DATASET_DIR=/path/to/images docker compose \
+#       -f docker-compose.yml \
+#       -f docker-compose.local-runner.yml \
+#       run --rm local_runner \
+#       --dataset-dir /input --work-dir /app/data/temp \
+#       --dataset-id mytest --stages calibration,orthomosaic --gsd 10.0
+#
+#   # SFM only  (uses sfm image — has COLMAP)
+#   DATASET_DIR=/path/to/images docker compose \
+#       -f docker-compose.yml \
+#       -f docker-compose.local-runner.yml \
+#       run --rm local_runner_sfm \
+#       --dataset-dir /input --work-dir /app/data/temp \
+#       --dataset-id mytest --stages sfm --gsd 10.0
+#
+# Both services write to the same shared_processing_data volume,
+# so results from SFM are automatically visible to the orthomosaic stage.
+#
+# Set DATASET_DIR before running (or replace /input in the commands above):
+#   export DATASET_DIR=/home/ali/projects/PhotogearOmidSa/DJI_202407190843_001_Mapping7
+
+services:
+  local_runner_calibration:
+    image: ${calibration_image_name:-photogear-calibration}:${calibration_tag:-latest}
+    volumes:
+      - ${HOST_APP_PATH:-.}:/app
+      - ${SHARED_DATA_VOLUME:-shared_processing_data}:/app/data/temp
+      - ${DATASET_DIR:?Set DATASET_DIR to the path of your raw images}:/input:ro
+    env_file:
+      - .env
+    environment:
+      - BACKGROUND_TASK_USE_REDIS=false
+      - SHARED_STORAGE_MODE=local
+    working_dir: /app
+    entrypoint: ["python3", "/app/run_local_pipeline.py"]
+    networks:
+      - image_processing_network
+
+  local_runner_sfm:
+    image: ${sfm_image_name:-photogear-sfm}:${sfm_tag:-latest}
+    volumes:
+      - ${HOST_APP_PATH:-.}:/app
+      - ${SHARED_DATA_VOLUME:-shared_processing_data}:/app/data/temp
+      - ${SFM_DB_VOLUME:-sfm_database}:/app/data/colmap_db
+      - ${COLMAP_VOCAB_TREE_HOST_PATH:-./data/vocab_tree_faiss_flickr100K_words256K.bin}:/usr/local/share/colmap/vocab_tree_flickr100K_words256K.bin:ro
+      - ${DATASET_DIR:?Set DATASET_DIR to the path of your raw images}:/input:ro
+    env_file:
+      - .env
+    environment:
+      - BACKGROUND_TASK_USE_REDIS=false
+      - SHARED_STORAGE_MODE=local
+    working_dir: /app
+    entrypoint: ["python3", "/app/run_local_pipeline.py"]
+    networks:
+      - image_processing_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  local_runner_orthomosaic:
+    image: ${orthomosaic_generation_image_name:-photogear-orthomosaic_generation}:${orthomosaic_generation_tag:-latest}
+    volumes:
+      - ${HOST_APP_PATH:-.}:/app
+      - ${SHARED_DATA_VOLUME:-shared_processing_data}:/app/data/temp
+      - ${DATASET_DIR:?Set DATASET_DIR to the path of your raw images}:/input:ro
+    env_file:
+      - .env
+    environment:
+      - BACKGROUND_TASK_USE_REDIS=false
+      - SHARED_STORAGE_MODE=local
+    working_dir: /app
+    entrypoint: ["python3", "/app/run_local_pipeline.py"]
+    networks:
+      - image_processing_network

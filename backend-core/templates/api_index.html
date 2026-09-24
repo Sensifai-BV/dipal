@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoGear API - Quick Reference</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.2em; opacity: 0.9; }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .endpoint .method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+        .method.get { background: #28a745; color: white; }
+        .method.post { background: #007bff; color: white; }
+        .method.put { background: #ffc107; color: black; }
+        .method.delete { background: #dc3545; color: white; }
+        .endpoint .path {
+            font-family: 'Courier New', monospace;
+            color: #495057;
+            font-weight: 500;
+        }
+        .endpoint .description {
+            color: #6c757d;
+            margin-top: 8px;
+            font-size: 0.95em;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .badge.auth { background: #ffc107; color: black; }
+        .badge.no-auth { background: #28a745; color: white; }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .quick-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: block;
+            transition: transform 0.2s;
+            text-align: center;
+        }
+        .quick-link:hover { transform: translateY(-5px); }
+        .quick-link h3 { margin-bottom: 5px; }
+        .example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        .example pre {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 PhotoGear API</h1>
+            <p>Photogrammetry Platform REST API</p>
+        </div>
+
+        <div class="quick-links">
+            <a href="/docs/" class="quick-link">
+                <h3>📚 Full API Docs</h3>
+                <p>Complete documentation with examples</p>
+            </a>
+            <a href="/admin/" class="quick-link">
+                <h3>⚙️ Admin Panel</h3>
+                <p>Django admin interface</p>
+            </a>
+            <a href="/v1/accounts/login/" class="quick-link">
+                <h3>🔐 Login</h3>
+                <p>Get JWT access token</p>
+            </a>
+        </div>
+
+        <div class="card">
+            <h2>🚀 Quick Start</h2>
+            <ol style="padding-left: 20px;">
+                <li style="margin-bottom: 10px;"><strong>Register:</strong> POST to <code>/v1/accounts/register/</code></li>
+                <li style="margin-bottom: 10px;"><strong>Login:</strong> POST to <code>/v1/accounts/login/</code> to get token</li>
+                <li style="margin-bottom: 10px;"><strong>Use token:</strong> Add header <code>Authorization: Bearer &lt;token&gt;</code></li>
+                <li><strong>Make requests:</strong> Access protected endpoints</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>🔓 Authentication Endpoints</h2>
+            <span class="badge no-auth">No Auth Required</span>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/v1/accounts/register/</span>
+                <div class="description">Register a new user account</div>
+                <div class="example">
+                    <pre>{
+  "email": "user@example.com",
+  "password": "password123",
+  "confirm_password": "password123"
+}</pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/v1/accounts/login/</span>
+                <div class="description">Login and receive JWT tokens</div>
+                <div class="example">
+                    <pre>{
+  "email": "user@example.com",
+  "password": "password123"
+}</pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/v1/accounts/profile/</span>
+                <span class="badge auth">Auth Required</span>
+                <div class="description">Get current user profile information</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🏢 Organization Endpoints</h2>
+            <span class="badge auth">Auth Required</span>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/v1/accounts/organizations/create/</span>
+                <div class="description">Create a new organization</div>
+                <div class="example">
+                    <pre>{
+  "name": "My Organization",
+  "description": "Optional description"
+}</pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/v1/accounts/organizations/list/</span>
+                <div class="description">List all organizations (supports pagination & filtering)</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/v1/accounts/organizations/detail/{id}/</span>
+                <div class="description">Get organization details by ID</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Dataset Endpoints</h2>
+            <span class="badge auth">Auth Required</span>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/v1/datasets/create/</span>
+                <div class="description">Create a new dataset</div>
+                <div class="example">
+                    <pre>{
+  "name": "Field Survey 2025",
+  "organization": 1,
+  "platform": "DJI Mavic 3M",
+  "capture_start": "2025-10-01T10:00:00Z",
+  "capture_end": "2025-10-01T12:00:00Z",
+  "crs": "EPSG:32639",
+  "bbox": {},
+  "notes": "Optional notes"
+}</pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/v1/datasets/list/</span>
+                <div class="description">List all datasets (supports pagination & filtering)</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/v1/datasets/detail/{id}/</span>
+                <div class="description">Get dataset details by ID</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>💻 Example Usage</h2>
+            <h3 style="margin-bottom: 10px;">Using curl:</h3>
+            <div class="example">
+                <pre># Register
+curl -X POST http://localhost:8000/v1/accounts/register/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"pass123","confirm_password":"pass123"}'
+
+# Login
+curl -X POST http://localhost:8000/v1/accounts/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"pass123"}'
+
+# Use token for authenticated requests
+curl -X GET http://localhost:8000/v1/accounts/profile/ \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"</pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📖 Response Format</h2>
+            <p>All responses follow this structure:</p>
+            <div class="example">
+                <pre>// Success
+{
+  "data": { ... },
+  "error": null,
+  "is_success": true
+}
+
+// Error
+{
+  "data": null,
+  "error": "Error message",
+  "is_success": false
+}</pre>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 20px; color: #6c757d;">
+            <p>For detailed API specifications, see <code>docs/backend-api-spec.md</code></p>
+            <p style="margin-top: 10px;">📚 <a href="/docs/" style="color: #667eea;">View Full API Documentation</a></p>
+        </div>
+    </div>
+</body>
+</html>

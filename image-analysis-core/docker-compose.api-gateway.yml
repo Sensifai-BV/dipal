@@ -1,0 +1,55 @@
+---
+services:
+  redis:
+    image: redis:8-alpine
+    networks:
+      - image_processing_network
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api_gateway:
+    image: ${api_gateway_image_name:-photogear-api_gateway}:${api_gateway_tag:-latest}
+    build:
+      context: .
+      dockerfile: api_gateway/Dockerfile
+
+    volumes:
+      - ./:/app
+
+    networks:
+      - image_processing_network
+
+    ports:
+      - "${API_GATEWAY_PORT:-8080}:${API_GATEWAY_PORT:-8080}"
+
+    env_file:
+      - .env
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    command: sh -c "uvicorn api_gateway.app.__main__:app --port $${API_GATEWAY_PORT:-8080} --host 0.0.0.0"
+    restart: always
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+networks:
+  image_processing_network:
+    external: true
+
+volumes:
+  redis_data:

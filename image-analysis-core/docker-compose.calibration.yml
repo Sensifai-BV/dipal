@@ -1,0 +1,37 @@
+---
+services:
+  calibration:
+    image: ${calibration_image_name:-photogear-calibration}:${calibration_tag:-latest}
+    build:
+      context: .
+      dockerfile: services/radiometric_calibration/Dockerfile
+
+    networks:
+      - image_processing_network
+
+    ports:
+      - "${CALIBRATION_SERVICE_PORT:-8001}:${CALIBRATION_SERVICE_PORT:-8001}"
+
+    volumes:
+      - ./:/app
+      - shared_processing_data:/app/data/temp
+
+    env_file:
+      - .env
+
+    command: sh -c "uvicorn services.radiometric_calibration.app.__main__:app --port $${CALIBRATION_SERVICE_PORT:-8001} --host 0.0.0.0"
+    restart: always
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+networks:
+  image_processing_network:
+    external: true
+
+volumes:
+  shared_processing_data:
+    external: true

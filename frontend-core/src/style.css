@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+@theme {
+  /* 🎨 Colors */
+  --color-primary: #155dfc;
+  --color-primary-100: #1447e6;
+  --color-primary-200: #1777cb;
+
+  --color-secondary: #6a7282;
+  --color-secondary-100: #99a1af;
+  --color-secondary-900: #364153;
+
+  --color-neutral-950: #101828;
+  --color-neutral-900: #4a5565;
+  --color-neutral-300: #d1d5dc;
+  --color-neutral-200: #f5f6fa;
+  --color-neutral-150: #ececf0;
+  --color-neutral-100: #f3f3f5;
+  --color-neutral-50: #eff6ff;
+
+  --color-blue-50: #eef4ff;
+  --color-blue-100: #e6edfe;
+  --color-blue-200: #bedbff;
+
+  --color-soft-white: #f9fafb;
+
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-light: #e5e7eb;
+
+  --color-success-100: #ccf2dd;
+  --color-success-200: #99e5bb;
+  --color-success-300: #66d999;
+  --color-success-400: #33cc77;
+  --color-success-500: #00a63e;
+  --color-success-600: #008c36;
+  --color-success-700: #00712e;
+  --color-success-800: #005726;
+  --color-success-900: #003d1e;
+
+  /* Additional theme colors from custome-theme.css */
+  --color-bg-success: #f0fdf4;
+  --color-bg-info: #eff6ff;
+  --color-bg-neutral: #f3f4f6;
+
+  --color-border-success: #b9f8cf;
+  --color-border-info: #bedbff;
+  --color-border-neutral: #e5e7eb;
+
+  /* 🅰️ Fonts */
+  --font-sans: "Arial", sans-serif;
+  --font-sen: "Sen", sans-serif;
+
+  /* 🔠 Font Sizes */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 24px;
+  --text-xl: 28px;
+
+  /* 📏 Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-24: 24px;
+  --spacing-25: 25px;
+  --spacing-32: 32px;
+
+  /* ⭕ Border Radius */
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius: 8px;
+  --radius-default: 8px;
+  /* DEFAULT */
+  --radius-full: 9999px;
+
+  /* 📏 Line Height */
+  --leading-none: 1;
+  --leading-sm: 14px;
+  --leading-base: 20px;
+  --leading-normal: 24px;
+  --leading-lg: 36px;
+
+  /* 🔡 Letter Spacing */
+  --tracking-tight: -1.12px;
+
+  /* 📐 Widths */
+  --width-sidebar: 256px;
+  --width-content: calc(100% - 256px);
+
+  /* 🕶️ Shadows */
+  --shadow-card: 0px 1px 3px rgba(0, 0, 0, 0.1);
+
+  /* 🧱 Gaps */
+  --gap-4: 4px;
+  --gap-8: 8px;
+  --gap-12: 12px;
+  --gap-16: 16px;
+  --gap-24: 24px;
+  --gap-30: 30px;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Define gradient variables as CSS custom properties for arbitrary values */
+:root {
+  --bg-gradient-success: linear-gradient(95deg, #32bb71 15.3%, #2a9d8f 113.45%);
+  --bg-solid-success: #43d590;
+
+  --bg-gradient-info: linear-gradient(94deg, #2d82b2 -6.52%, #329abb 108.61%);
+  --bg-solid-info: #7bcfed;
+
+  --bg-gradient-warning: linear-gradient(
+    93deg,
+    #f8b806 -30.52%,
+    #ff8c04 123.88%
+  );
+  --bg-solid-warning: #ffdf8d;
+
+  --bg-gradient-error: linear-gradient(95deg, #f6743e -6.96%, #d42525 108.25%);
+  --bg-solid-error: #f0863a;
+}

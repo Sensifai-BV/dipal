@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-analysis-core"
+version = "0.10.26"
+description = "AI-powered image processing microservices for photogrammetry"
+requires-python = ">=3.12"
+dependencies = [
+    "pycolmap==3.13.0",
+    "numpy",
+    "opencv-python",
+    "boto3",
+    "requests",
+    "chromatrace>=0.2.16",
+    "Pillow>=10.0.0",
+    "pydantic-settings>=2.0.0",
+    "redis>=5.0.0",
+]

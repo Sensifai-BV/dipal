@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgis/postgis:17-3.5-alpine
+    container_name: photogear_postgres
+    hostname: postgis
+    networks:
+      - image_processing_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "35433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  redis:
+    image: redis:8-alpine
+    container_name: photogear_redis
+    hostname: photogear_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - image_processing_network
+
+  web:
+    build: .
+    container_name: photogear_backend
+    hostname: photogear-backend
+    networks:
+      image_processing_network:
+        aliases:
+          - backend
+          - photogear-backend
+    command: sh -c "python manage.py migrate && uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    restart: always
+
+  celery_worker:
+    build: .
+    container_name: photogear_celery_worker
+    hostname: photogear_celery_worker
+    networks:
+      - image_processing_network
+    command: celery -A config worker -l info --concurrency=2
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping --timeout=5"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    restart: always
+
+volumes:
+  postgres_data:
+  static_volume:
+  redis_data:
+
+
+networks:
+  image_processing_network:
+    driver: bridge
+    name: photogear_image_processing_network
