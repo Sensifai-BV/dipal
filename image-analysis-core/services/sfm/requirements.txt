@@ -7,6 +7,6 @@ boto3==1.40.65
 httpx>=0.27.0
 pycolmap==3.13.0
 opencv-python-headless==4.10.0.84
-Pillow==11.1.0
+Pillow==12.3.0
 psygnal==0.14.2
 chromatrace==0.2.16
