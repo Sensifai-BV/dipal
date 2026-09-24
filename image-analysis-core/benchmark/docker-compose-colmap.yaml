@@ -1,0 +1,17 @@
+---
+services:
+  colmap:
+    build:
+      context: colmap
+      dockerfile: docker/Dockerfile
+    container_name: colmap_service
+    volumes:
+      - ../data:/home/data
+    command: colmap automatic_reconstructor --image_path /home/data/images --workspace_path /home/data/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

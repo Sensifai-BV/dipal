@@ -1,0 +1,10 @@
+---
+services:
+  opensfm:
+    build:
+      context: OpenSfM/
+      dockerfile: Dockerfile.ubuntu20
+    container_name: opensfm_service
+    volumes:
+      - ./data:/home/data
+    command: './bin/opensfm_run_all /home/data'

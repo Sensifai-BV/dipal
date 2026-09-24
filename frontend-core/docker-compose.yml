@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_BASE_URL: ${VITE_BASE_URL}
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    network_mode: "host"

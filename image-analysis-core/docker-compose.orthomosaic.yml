@@ -1,0 +1,38 @@
+---
+services:
+  orthomosaic_generation:
+    image: ${orthomosaic_generation_image_name:-photogear-orthomosaic_generation}:${orthomosaic_generation_tag:-latest}
+    build:
+      context: .
+      dockerfile: services/orthomosaic_generation/Dockerfile
+
+    networks:
+      - image_processing_network
+
+    volumes:
+      - ./:/app
+      - shared_processing_data:/app/data/temp  # Shared volume to read SFM output
+
+    ports:
+      - "${ORTHOMOSAIC_SERVICE_PORT:-8003}:${ORTHOMOSAIC_SERVICE_PORT:-8003}"
+
+    env_file:
+      - .env
+
+    command: sh -c "uvicorn services.orthomosaic_generation.app.__main__:app --port $${ORTHOMOSAIC_SERVICE_PORT:-8003} --host 0.0.0.0"
+    restart: always
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+
+networks:
+  image_processing_network:
+    external: true
+
+volumes:
+  shared_processing_data:
+    external: true  # Shared with SFM service

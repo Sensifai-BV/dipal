@@ -1,0 +1,13 @@
+pydantic==2.11.9
+pydantic_settings==2.10.1
+fastapi==0.116.2
+uvicorn==0.35.0
+httpx>=0.27.0
+boto3==1.40.65
+pillow==12.0.0
+numpy==2.2.6
+opencv-contrib-python-headless==4.12.0.88
+python-xmp-toolkit==2.0.2
+lagom==2.7.7
+chromatrace==0.2.16
+gdal==3.12.2

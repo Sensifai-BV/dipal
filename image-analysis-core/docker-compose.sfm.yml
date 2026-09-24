@@ -1,0 +1,50 @@
+---
+services:
+  sfm:
+    image: ${sfm_image_name:-photogear-sfm}:${sfm_tag:-latest}
+    build:
+      context: .
+      dockerfile: services/sfm/Dockerfile
+
+    networks:
+      - image_processing_network
+
+    volumes:
+      - ./:/app
+      - shared_processing_data:/app/data/temp  # Shared volume for SFM output -> Orthomosaic input
+      - sfm_database:/app/data/colmap_db  # COLMAP database persistence
+
+    ports:
+      - "${SFM_SERVICE_PORT:-8002}:${SFM_SERVICE_PORT:-8002}"
+
+    env_file:
+      - .env
+
+    # Uncomment the section below if you have GPU and want to use it
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+    command: sh -c "uvicorn services.sfm.app.__main__:app --port $${SFM_SERVICE_PORT:-8002} --host 0.0.0.0"
+    restart: always
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+
+networks:
+  image_processing_network:
+    external: true
+
+volumes:
+  shared_processing_data:
+    external: true  # Shared with orthomosaic service
+  sfm_database:
+    external: true  # COLMAP database persistence

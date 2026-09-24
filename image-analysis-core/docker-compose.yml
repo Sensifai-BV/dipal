@@ -1,0 +1,193 @@
+---
+# All-in-one docker-compose file for running all services together
+# For individual services, use docker-compose.{service}.yml files
+services:
+  # redis:
+  #   image: redis:8-alpine
+  #   networks:
+  #     - image_processing_network
+  #   ports:
+  #     - "${REDIS_PORT:-6379}:6379"
+  #   volumes:
+  #     - ${REDIS_DATA_VOLUME:-redis_data}:/data
+  #   command: redis-server --appendonly yes
+  #   restart: always
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  api_gateway:
+    image: ${api_gateway_image_name:-photogear-api_gateway}:${api_gateway_tag:-latest}
+    container_name: photogear-api_gateway
+    hostname: photogear_api_gateway
+    build:
+      context: .
+      dockerfile: api_gateway/Dockerfile
+
+    volumes:
+      - ${HOST_APP_PATH:-.}:/app
+      - ${SHARED_DATA_VOLUME:-shared_processing_data}:/app/data/temp
+
+    networks:
+      - image_processing_network
+
+    ports:
+      - "${API_GATEWAY_PORT:-8080}:${API_GATEWAY_PORT:-8080}"
+
+    env_file:
+      - .env
+
+    # depends_on:
+    #   redis:
+    #     condition: service_healthy
+
+    command: sh -c "uvicorn api_gateway.app.__main__:app --port $${API_GATEWAY_PORT:-8080} --host 0.0.0.0"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "${API_GATEWAY_CPUS:-6}"
+          memory:  "${API_GATEWAY_MEMORY_LIMIT:-28g}"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+
+  calibration:
+    image: ${calibration_image_name:-photogear-calibration}:${calibration_tag:-latest}
+    container_name: photogear-calibration
+    build:
+      context: .
+      dockerfile: services/radiometric_calibration/Dockerfile
+    depends_on:
+      api_gateway:
+        condition: service_healthy
+    networks:
+      - image_processing_network
+    ports:
+      - "${CALIBRATION_SERVICE_PORT:-8001}:${CALIBRATION_SERVICE_PORT:-8001}"
+    volumes:
+      - ${HOST_APP_PATH:-.}:/app
+      - ${SHARED_DATA_VOLUME:-shared_processing_data}:/app/data/temp
+    env_file:
+      - .env
+    command: sh -c "uvicorn services.radiometric_calibration.app.__main__:app --port $${CALIBRATION_SERVICE_PORT:-8001} --host 0.0.0.0"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "${CALIBRATION_CPUS:-6}"
+          memory: "${CALIBRATION_MEMORY_LIMIT:-28g}"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+
+  sfm:
+    image: ${sfm_image_name:-photogear-sfm}:${sfm_tag:-latest}
+    container_name: photogear-sfm
+    build:
+      context: .
+      dockerfile: services/sfm/Dockerfile
+    depends_on:
+      api_gateway:
+        condition: service_healthy
+
+    networks:
+      - image_processing_network
+
+    ports:
+      - "${SFM_SERVICE_PORT:-8002}:${SFM_SERVICE_PORT:-8002}"
+
+    volumes:
+      - ${HOST_APP_PATH:-.}:/app
+      - ${SHARED_DATA_VOLUME:-shared_processing_data}:/app/data/temp  # Shared volume for SFM output -> Orthomosaic input
+      - ${SFM_DB_VOLUME:-sfm_database}:/app/data/colmap_db  # COLMAP database persistence
+      - ${COLMAP_VOCAB_TREE_HOST_PATH:-./data/vocab_tree_faiss_flickr100K_words256K.bin}:/usr/local/share/colmap/vocab_tree_flickr100K_words256K.bin:ro  # Pre-downloaded vocab tree
+
+    env_file:
+      - .env
+
+    deploy:
+      resources:
+        limits:
+          cpus: "${SFM_CPUS:-6}"
+          memory: "${SFM_MEMORY_LIMIT:-28g}"
+          
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    command: sh -c "uvicorn services.sfm.app.__main__:app --port $${SFM_SERVICE_PORT:-8002} --host 0.0.0.0"
+    restart: always
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+
+
+  orthomosaic_generation:
+    image: ${orthomosaic_generation_image_name:-photogear-orthomosaic_generation}:${orthomosaic_generation_tag:-latest}
+    container_name: photogear-orthomosaic_generation
+    build:
+      context: .
+      dockerfile: services/orthomosaic_generation/Dockerfile
+    depends_on:
+      api_gateway:
+        condition: service_healthy
+
+    networks:
+      - image_processing_network
+
+    ports:
+      - "${ORTHOMOSAIC_SERVICE_PORT:-8003}:${ORTHOMOSAIC_SERVICE_PORT:-8003}"
+
+    volumes:
+      - ${HOST_APP_PATH:-.}:/app
+      - ${SHARED_DATA_VOLUME:-shared_processing_data}:/app/data/temp  # Shared volume to read SFM output
+
+    env_file:
+      - .env
+
+    command: sh -c "uvicorn services.orthomosaic_generation.app.__main__:app --port $${ORTHOMOSAIC_SERVICE_PORT:-8003} --host 0.0.0.0"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "${ORTHOMOSAIC_CPUS:-6}"
+          memory: "${ORTHOMOSAIC_MEMORY_LIMIT:-28g}"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health/')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+
+
+networks:
+  image_processing_network:
+    name: photogear_image_processing_network
+    # driver: bridge
+    external: true  # Use an existing network created outside of this compose file
+
+volumes:
+  shared_processing_data:  # Named volume shared between SFM and Orthomosaic services
+    name: photogear_shared_processing_data
+  sfm_database:  # Named volume for COLMAP database persistence
+    name: photogear_sfm_database
+  redis_data:  # Named volume for Redis persistence
+    name: photogear_redis_data
+

@@ -1,0 +1,483 @@
+{
+	"info": {
+		"_postman_id": "photogear-backend-api",
+		"name": "PhotoGear Backend API",
+		"description": "Complete API collection for PhotoGear photogrammetry platform backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "photogear"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"confirm_password\": \"password123\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/accounts/register/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"accounts",
+								"register",
+								""
+							]
+						},
+						"description": "Register a new user account. Returns user data on success."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.access) {",
+									"        pm.environment.set(\"access_token\", jsonData.data.access);",
+									"        pm.environment.set(\"refresh_token\", jsonData.data.refresh);",
+									"        console.log(\"Access token saved to environment\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/accounts/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"accounts",
+								"login",
+								""
+							]
+						},
+						"description": "Login with email and password. Returns JWT access and refresh tokens. Automatically saves tokens to environment variables."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/accounts/profile/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"accounts",
+								"profile",
+								""
+							]
+						},
+						"description": "Get current authenticated user's profile information."
+					},
+					"response": []
+				}
+			],
+			"description": "User authentication endpoints - register, login, and profile"
+		},
+		{
+			"name": "Organizations",
+			"item": [
+				{
+					"name": "Create Organization",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"My Organization\",\n  \"description\": \"Organization description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/accounts/organizations/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"accounts",
+								"organizations",
+								"create",
+								""
+							]
+						},
+						"description": "Create a new organization for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "List Organizations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/accounts/organizations/list/?page=1&ordering=-created_at",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"accounts",
+								"organizations",
+								"list",
+								""
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "ordering",
+									"value": "-created_at",
+									"description": "Order by field (use - for descending)"
+								},
+								{
+									"key": "name",
+									"value": "",
+									"description": "Filter by name",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List all organizations for the authenticated user. Supports pagination and filtering."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organization Detail",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/accounts/organizations/detail/:id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"accounts",
+								"organizations",
+								"detail",
+								":id",
+								""
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Organization ID"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific organization by ID."
+					},
+					"response": []
+				}
+			],
+			"description": "Organization management endpoints"
+		},
+		{
+			"name": "Datasets",
+			"item": [
+				{
+					"name": "Create Dataset",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Field Survey 2025\",\n  \"organization\": 1,\n  \"platform\": \"DJI Mavic 3M\",\n  \"capture_start\": \"2025-10-01T10:00:00Z\",\n  \"capture_end\": \"2025-10-01T12:00:00Z\",\n  \"crs\": \"EPSG:32639\",\n  \"bbox\": {\n    \"type\": \"Polygon\",\n    \"coordinates\": [\n      [\n        [35.0, 31.0],\n        [36.0, 31.0],\n        [36.0, 32.0],\n        [35.0, 32.0],\n        [35.0, 31.0]\n      ]\n    ]\n  },\n  \"notes\": \"Morning flight, clear conditions\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/datasets/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"datasets",
+								"create",
+								""
+							]
+						},
+						"description": "Create a new dataset for drone imagery collection."
+					},
+					"response": []
+				},
+				{
+					"name": "List Datasets",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/datasets/list/?page=1&ordering=-created_at",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"datasets",
+								"list",
+								""
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "ordering",
+									"value": "-created_at",
+									"description": "Order by field"
+								},
+								{
+									"key": "platform",
+									"value": "",
+									"description": "Filter by platform",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "",
+									"description": "Filter by name",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List all datasets for the authenticated user. Supports pagination, filtering, and ordering."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dataset Detail",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/datasets/detail/:id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"datasets",
+								"detail",
+								":id",
+								""
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Dataset ID"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific dataset by ID."
+					},
+					"response": []
+				}
+			],
+			"description": "Dataset management endpoints for drone imagery collections"
+		},
+		{
+			"name": "API Info",
+			"item": [
+				{
+					"name": "API Root",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Get API root information with links to all available endpoints."
+					},
+					"response": []
+				},
+				{
+					"name": "API Documentation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/docs/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"docs",
+								""
+							]
+						},
+						"description": "Get complete API documentation with examples and usage instructions."
+					},
+					"response": []
+				}
+			],
+			"description": "General API information and documentation endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
