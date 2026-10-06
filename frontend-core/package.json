@@ -14,7 +14,7 @@
     "@popperjs/core": "^2.11.8",
     "@tailwindcss/vite": "^4.1.17",
     "await-to-js": "^3.0.0",
-    "axios": "^1.13.2",
+    "axios": "^1.20.0",
     "geotiff": "^3.0.4",
     "idb": "^8.0.3",
     "lucide-vue-next": "^0.553.0",
